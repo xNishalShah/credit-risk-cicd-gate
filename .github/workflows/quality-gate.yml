@@ -1,0 +1,33 @@
+name: credit-risk-quality-gate
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-train-and-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install project
+        run: pip install -r requirements.txt
+      - name: Restore versioned training data
+        run: |
+          pip install dvc
+          dvc pull data/raw/credit_card_customers_v1.csv.dvc
+      - name: Test feature and gate logic
+        run: PYTHONPATH=src pytest -q
+      - name: Train CI candidate
+        run: PYTHONPATH=src python -m credit_risk.train --config configs/ci.yaml --output artifacts/candidate_metrics.json
+      - name: Enforce baseline quality gate
+        run: PYTHONPATH=src python -m credit_risk.gate --config configs/ci.yaml --candidate artifacts/candidate_metrics.json --baseline baselines/approved.json
+      - name: Publish reviewer summary
+        if: always()
+        run: |
+          echo '## Credit Risk CI result' >> "$GITHUB_STEP_SUMMARY"
+          test -f artifacts/candidate_metrics.json && cat artifacts/candidate_metrics.json >> "$GITHUB_STEP_SUMMARY" || echo 'Training did not create metrics.' >> "$GITHUB_STEP_SUMMARY"
