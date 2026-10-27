@@ -10,7 +10,3 @@ def test_gate_rejects_material_regression():
     passed, reasons = evaluate(candidate, baseline, CONFIG)
     assert not passed
     assert "below permitted baseline" in reasons[0]
-
-
-def test_intentional_demo_failure():
-    assert False, "Intentional CI failure for demonstration"
