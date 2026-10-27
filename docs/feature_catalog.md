@@ -8,3 +8,5 @@
 | Monthly Spend to Limit | Monthly Spend / Credit Limit | Sustained spending pressure relative to capacity can signal financial strain. |
 
 `Customer_ID` and the target are excluded from predictors. A zero credit limit is converted to a safe zero ratio rather than infinity. Missing values are imputed inside the fitted pipeline, avoiding leakage from the test set.
+
+Reviewed for CI demonstration.
